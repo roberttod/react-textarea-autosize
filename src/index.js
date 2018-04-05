@@ -32,6 +32,7 @@ export default class TextareaAutosize extends React.Component {
     onHeightChange: PropTypes.func,
     useCacheForDOMMeasurements: PropTypes.bool,
     value: PropTypes.string,
+    positionGetter: PropTypes.func,
   };
 
   static defaultProps = {
@@ -39,6 +40,7 @@ export default class TextareaAutosize extends React.Component {
     onChange: noop,
     onHeightChange: noop,
     useCacheForDOMMeasurements: false,
+    positionGetter: noop,
   };
 
   _resizeLock = false;
@@ -62,6 +64,7 @@ export default class TextareaAutosize extends React.Component {
       minRows: _minRows,
       onHeightChange: _onHeightChange,
       useCacheForDOMMeasurements: _useCacheForDOMMeasurements,
+      positionGetter: _positionGetter,
       ...props
     } = this.props;
 
@@ -101,6 +104,7 @@ export default class TextareaAutosize extends React.Component {
       this._resizeComponent(() => (this._resizeLock = false));
     };
     window.addEventListener('resize', this._resizeListener);
+    this.props.positionGetter(this._getCursorPosition.bind(this));
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -118,6 +122,7 @@ export default class TextareaAutosize extends React.Component {
     this._clearNextFrame();
     window.removeEventListener('resize', this._resizeListener);
     purgeCache(this._uid);
+    this.props.positionGetter(null);
   }
 
   _clearNextFrame() {
@@ -135,6 +140,32 @@ export default class TextareaAutosize extends React.Component {
     }
     this.props.onChange(event);
   };
+
+  _getCursorPosition() {
+    const valueUpToCursor =
+      this.props.value.substring(0, this._rootDOMNode.selectionStart + 1) ||
+      'x';
+    const lineNumber =
+      calculateNodeHeight(
+        this._rootDOMNode,
+        this._uid + '-positioner',
+        this.props.useCacheForDOMMeasurements,
+        this.props.minRows,
+        this.props.maxRows,
+        valueUpToCursor,
+      ).rowCount - 1;
+    const { rowCount } = calculateNodeHeight(
+      this._rootDOMNode,
+      this._uid,
+      this.props.useCacheForDOMMeasurements,
+      this.props.minRows,
+      this.props.maxRows,
+    );
+    return {
+      lineNumber,
+      rowCount,
+    };
+  }
 
   _resizeComponent = (callback = noop) => {
     if (typeof this._rootDOMNode === 'undefined') {

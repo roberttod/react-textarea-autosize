@@ -56,6 +56,7 @@ export default function calculateNodeHeight(
   useCache = false,
   minRows = null,
   maxRows = null,
+  value = null,
 ) {
   if (hiddenTextarea.parentNode === null) {
     document.body.appendChild(hiddenTextarea);
@@ -78,10 +79,16 @@ export default function calculateNodeHeight(
     hiddenTextarea.style[key] = sizingStyle[key];
   });
   forceHiddenStyles(hiddenTextarea);
-  hiddenTextarea.value = uiTextNode.value || uiTextNode.placeholder || 'x';
+
+  hiddenTextarea.value = 'x';
+  const singleRowHeight = hiddenTextarea.scrollHeight - paddingSize;
+
+  hiddenTextarea.value =
+    value || uiTextNode.value || uiTextNode.placeholder || 'x';
 
   let minHeight = -Infinity;
   let maxHeight = Infinity;
+  const contentHeight = hiddenTextarea.scrollHeight - paddingSize;
   let height = hiddenTextarea.scrollHeight;
 
   if (boxSizing === 'border-box') {
@@ -91,10 +98,6 @@ export default function calculateNodeHeight(
     // remove padding, since height = content
     height = height - paddingSize;
   }
-
-  // measure height of a textarea with a single row
-  hiddenTextarea.value = 'x';
-  const singleRowHeight = hiddenTextarea.scrollHeight - paddingSize;
 
   if (minRows !== null || maxRows !== null) {
     if (minRows !== null) {
@@ -113,8 +116,7 @@ export default function calculateNodeHeight(
     }
   }
 
-  const rowCount = Math.floor(height / singleRowHeight);
-
+  const rowCount = Math.floor(contentHeight / singleRowHeight);
   return { height, minHeight, maxHeight, rowCount };
 }
 
