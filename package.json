@@ -1,5 +1,5 @@
 {
-  "name": "react-textarea-autosize",
+  "name": "react-smart-textarea",
   "description": "textarea component for React which grows with content",
   "version": "6.1.0",
   "keywords": "autosize, grow, react, react-component, textarea",
